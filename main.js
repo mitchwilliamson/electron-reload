@@ -7,6 +7,7 @@ const path = require('path')
 module.exports = (glob, options) => {
   options = options || {}
   let browserWindows = []
+  let cooldown = null
 
   // Main file poses a special case, as its changes are
   // only effective when the process is restarted (hard reset)
@@ -29,9 +30,15 @@ module.exports = (glob, options) => {
    * defined in given 'glob' is changed.
    */
   let onChange = () => {
-    browserWindows.forEach((bw) => {
-      bw.webContents.reloadIgnoringCache()
-    })
+    if(cooldown)
+      return;
+
+    cooldown = setTimeout(() => {
+      browserWindows.forEach((bw) => {
+        bw.webContents.reloadIgnoringCache()
+      })
+      cooldown = null;
+    }, 500);
   }
 
   // Add each created BrowserWindow to list of maintained items
